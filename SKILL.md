@@ -1,12 +1,42 @@
 ---
 name: gog
-description: Google Workspace CLI for Gmail, Calendar, Drive, Sheets, Docs, Slides, Contacts, Tasks, and more.
-triggers: gmail, email, calendar, google drive, spreadsheet, sheets, docs, slides, contacts, tasks, send email, search email
+description: Google Workspace CLI for Gmail, Calendar, Drive, Sheets, Docs, Slides, Contacts, Tasks, and more. Use this skill whenever the user mentions anything related to Google services - checking emails, scheduling meetings, finding files, managing tasks, or working with any Google Workspace data. Even if they don't explicitly say "use gog" or mention the CLI, trigger this skill for any Google-related task.
+triggers: gmail, email, calendar, google drive, spreadsheet, sheets, docs, slides, contacts, tasks, send email, search email, meeting, schedule, file, document, presentation, todo, list, google workspace, check inbox, unread, attachments
 allowed-tools: Bash(gog:*)
 compatibility: Linux, macOS, Windows
 ---
 
-## Quick Start
+## Quick Reference
+
+**Core Pattern:** Always use `--json --no-input` flags for agent automation.
+
+```bash
+# Check auth status first
+gog auth list --no-input
+
+# Gmail
+gog gmail search 'is:unread' --max 10
+gog gmail send --to "user@example.com" --subject "Hi" --body "Message"
+
+# Calendar
+gog calendar events --today
+gog calendar create primary --summary "Meeting" --from "2026-04-16T14:00:00" --to "2026-04-16T15:00:00"
+
+# Drive
+gog drive search "report" --max 10
+gog drive download <fileId>
+
+# Sheets
+gog sheets get <spreadsheetId> "Sheet1!A1:D10"
+
+# Tasks
+gog tasks lists
+gog tasks list <listId>
+```
+
+## Full Documentation
+
+### Quick Start
 
 ```bash
 # Check if installed
@@ -244,3 +274,46 @@ gog time now --timezone UTC
 - Use `--force` for destructive ops (delete, clear)
 - Gmail search: `from:`, `to:`, `subject:`, `has:attachment`, `newer_than:7d`, `is:unread`, `label:`
 - Calendar times: RFC3339, dates (`2026-03-01`), or relative (`today`, `tomorrow`)
+
+## Error Handling
+
+### Common Errors and Solutions
+
+**"No accounts found" or auth errors:**
+```bash
+# Check auth status
+gog auth list --no-input
+
+# If no accounts, user needs to authenticate
+gog auth add user@gmail.com
+```
+
+**Keyring errors (headless/WSL/CI):**
+```bash
+# Set the keyring password
+export GOG_KEYRING_PASSWORD='your-password'
+
+# Or switch to file backend
+gog auth keyring file
+```
+
+**Command not found:**
+```bash
+# Check if gog is installed
+gog version
+
+# If not installed, direct user to https://gogcli.sh/#install
+```
+
+**Permission denied or API errors:**
+- User may need to enable the specific Google API in their Cloud Console
+- Check OAuth consent screen has required scopes
+- For Workspace users, admin may need to grant access
+
+### When Authentication is Required
+
+If a command fails due to auth issues:
+1. Run `gog auth list --no-input` to check status
+2. If no accounts, guide user through setup (see Authentication section)
+3. For headless environments, use `--manual` or `--remote` flags
+4. Never attempt to automate OAuth - it requires human interaction
